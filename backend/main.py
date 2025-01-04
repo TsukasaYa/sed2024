@@ -1,12 +1,18 @@
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from scraping import get_dates, get_races
+import json
 
 app = FastAPI()
 
-origins = [
-    "http://localhost",
-    "http://localhost:3000"
-]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 必要に応じて特定のオリジンを指定
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def read_root():
@@ -16,7 +22,8 @@ def read_root():
 async def thisweek_races():
     dates = get_dates()
     races = get_races(dates)
-    return races.to_json(orient="records")
+    json_data = races.to_json(orient="records", force_ascii=False)
+    return JSONResponse(content=json.loads(json_data), headers={"Content-Type": "application/json; charset=utf-8"})
 
 if __name__ == '__main__':
     pass

@@ -35,7 +35,7 @@ def get_dates():
         lines = f.readlines()
     if len(lines) > 0 and int(lines[-1]) > today_int:
         print("LOAD dates from cache ", end="")
-        future_dates = [d.strip() for d in lines if int(d) > today_int]
+        future_dates = [d.strip() for d in lines if int(d) >= today_int]
     else:
         future_dates = extract_dates(today_int)
     print(future_dates)
