@@ -80,7 +80,8 @@ def extract_races(date, col_name):
         for race in races.find_all("li"):
             race_name = race.find("span", class_="ItemTitle").get_text(strip=True)
             race_id   = re.search(r"race_id=(\d+)", race.find("a").get("href")).group(1)
-            new_rows.append([date, cource, race_name, race_id])
+            race_round= str(int(race_id[-2:]))
+            new_rows.append([date, cource, race_round, race_name, race_id])
     new_df = pd.DataFrame(new_rows, columns=col_name)
     return new_df
 

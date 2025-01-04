@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from scraping import get_dates, get_races
 
 app = FastAPI()
 
@@ -10,6 +11,12 @@ origins = [
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
+@app.get("/races")
+async def thisweek_races():
+    dates = get_dates()
+    races = get_races(dates)
+    return races.to_json(orient="records")
 
 if __name__ == '__main__':
     pass
