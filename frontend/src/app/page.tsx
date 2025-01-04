@@ -14,6 +14,9 @@ type Race = {
 export default function Home() {
   const [data, setData] = useState<Race[]>([]);
   const [filteredData, setFilteredData] = useState<Race[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedCourse, setSelectedCourse] = useState<string>('');
+  const [selectedRaceId, setSelectedRaceId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,31 +28,126 @@ export default function Home() {
     fetchData();
   }, []);
 
+  // フィルタ
   useEffect(() => {
-    const filtered = data.filter((item) => item.course === '中山' && item.date === '20250105');
+    const filtered = data.filter(
+      (item) =>
+        (selectedDate ? item.date === selectedDate : true) &&
+        (selectedCourse ? item.course === selectedCourse : true)
+    );
     setFilteredData(filtered);
-  }, [data]);
+  }, [data, selectedDate, selectedCourse]);
+
+  // 日付とコースのユニークなリストを生成
+  const dates = Array.from(new Set(data.map((item) => item.date)));
+  const courses = Array.from(new Set(data.map((item) => item.course)));
+
+  const handleRowClick = (raceId: number) => {
+    setSelectedRaceId(raceId);
+  };
 
   return (
-    <div>
-      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+    <div style={{ backgroundColor: 'white', color: 'black', padding: '20px' }}>
+      <div>
+        <label htmlFor="date">日付: </label>
+        <select
+          id="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          style={{
+            backgroundColor: '#f0f8ff', // 背景色
+            color: '#333', // 文字色
+            padding: '10px',
+            borderRadius: '5px',
+            border: '1px solid #ccc',
+            marginBottom: '10px',
+          }}
+        >
+          <option value="">All Dates</option>
+          {dates.map((date) => (
+            <option key={date} value={date}>
+              {date}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label htmlFor="course">競馬場: </label>
+        <select
+          id="course"
+          value={selectedCourse}
+          onChange={(e) => setSelectedCourse(e.target.value)}
+          style={{
+            backgroundColor: '#f0f8ff', // 背景色
+            color: '#333', // 文字色
+            padding: '10px',
+            borderRadius: '5px',
+            border: '1px solid #ccc',
+            marginBottom: '10px',
+          }}
+        >
+          <option value="">All Courses</option>
+          {courses.map((course) => (
+            <option key={course} value={course}>
+              {course}
+            </option>
+          ))}
+        </select>
+      </div>
+      {selectedRaceId && (
+        <div style={{ marginTop: '20px' }}>
+          <h3>Selected Race ID: {selectedRaceId}</h3>
+        </div>
+      )}
+      <table style={{ borderCollapse: 'collapse', width: '100%', marginTop: '20px' }}>
         <thead>
-          <tr>
-            <th>Date</th>
-            <th>Course</th>
-            <th>Round</th>
-            <th>Name</th>
-            <th>Race ID</th>
+        <tr>
+            <th
+              style={{
+                border: '1px solid #ccc', // セルの罫線
+                padding: '10px', // セル内の余白
+                backgroundColor: '#f2f2f2', // ヘッダー背景色
+              }}
+            >
+              Round
+            </th>
+            <th
+              style={{
+                border: '1px solid #ccc',
+                padding: '10px',
+                backgroundColor: '#f2f2f2',
+              }}
+            >
+              レース名
+            </th>
           </tr>
         </thead>
         <tbody>
           {filteredData.map((row, index) => (
-            <tr key={index}>
-              <td>{row.date}</td>
-              <td>{row.course}</td>
-              <td>{row.round}</td>
-              <td>{row.name}</td>
-              <td>{row.race_id}</td>
+            <tr 
+              key={row.race_id}
+              onClick={() => handleRowClick(row.race_id)}
+              style={{
+                cursor: 'pointer', // クリック可能なカーソル
+                backgroundColor: selectedRaceId === row.race_id ? '#f0f8ff' : '', // 選択された行の背景色
+              }}
+            >
+              <td
+                style={{
+                  border: '1px solid #ccc', // セルの罫線
+                  padding: '10px', // セル内の余白
+                }}
+              >
+                {row.round}
+              </td>
+              <td
+                style={{
+                  border: '1px solid #ccc',
+                  padding: '10px',
+                }}
+              >
+                {row.name}
+              </td>
             </tr>
           ))}
         </tbody>
