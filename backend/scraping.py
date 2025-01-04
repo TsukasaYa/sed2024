@@ -56,6 +56,18 @@ def extract_dates(today_int):
                 f.write(date_str)
     return future_dates
 
+def get_races(dates):
+    race_df = pd.read_csv("cache/races.csv", dtype=str)
+    for date in dates:
+        if date in race_df["date"].values:
+            print(f"LOAD races on {date} from cache")
+            continue
+        new_df = extract_races(date, race_df.columns)
+        race_df = pd.concat([race_df, new_df])
+        race_df.to_csv("cache/races.csv", index=False)
+    race_thisweek = race_df[race_df["date"].isin(dates)]
+    return race_thisweek
+
 def extract_races(date, col_name):
     new_rows = []
     url = "https://race.netkeiba.com/top/race_list.html?kaisai_date=" + date
@@ -73,18 +85,11 @@ def extract_races(date, col_name):
     return new_df
 
 def main():
-    race_dates = extract_dates()
-
-
-    # get link of grade race
-    race_df = pd.read_csv("cache/races.csv", dtype=str)
-    for date in race_dates:
-        if date in race_df["date"].values:
-            print(f"LOAD races on {date} from cache")
-            continue
-        new_df = extract_races(date, race_df.columns)
-        race_df = pd.concat([race_df, new_df])
-        race_df.to_csv("cache/races.csv", index=False)
+    # 今週のレース開催日
+    race_dates = get_dates()
+    # 開催されるレース
+    race_df = get_races(race_dates)
+    print(race_df)
 
 if __name__ == "__main__":
     main()
