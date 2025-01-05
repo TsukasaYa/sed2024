@@ -64,7 +64,7 @@ async def set_selection(s: Selection):
 @app.get("/umaren")
 async def umaren():
     umaren = get_umaren(saved_race_id, tansho_odds)
-    json_data = tansho_odds.to_json(orient="records", force_ascii=False)
+    json_data = umaren.to_json(orient="records", force_ascii=False)
     print(f"SEND umaren_odds")
     return JSONResponse(content=json.loads(json_data), headers={"Content-Type": "application/json; charset=utf-8"})
 

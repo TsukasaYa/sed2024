@@ -15,11 +15,17 @@ interface RaceHorse{
 }
 
 interface UmarenBet{
-
+  num1 : number
+  num2 : number
+  odds : number
+  ratio: number
+  win  : number
 }
 
 const OddsPage = () => {
   const [raceCard, setRaceCard] = useState<RaceHorse[]>([]);
+  const [umaren, setUmaren] = useState<UmarenBet[]>([]);
+  const [selcetedUmaren, setSelcetedUmaren] = useState<UmarenBet[]>([]);
   const [selection, setSelection] = useState<number[]>([]); // 選択した馬番
 
   useEffect(() => {
@@ -40,7 +46,26 @@ const OddsPage = () => {
         console.error('Error fetching race card:', error);
       }
     };
+    const fetchUmaren = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/umaren');
+        const data = await response.json();
+        console.log(data);
+        const mappedData = data.map((item) => ({
+          num1: item["馬番1"],
+          num2: item["馬番2"], 
+          odds: item["オッズ"],
+          ratio: item["支持率"],
+          win: item["単勝ベース"]
+        }));
+        setUmaren(mappedData);
+        console.log(umaren);
+      } catch (error) {
+        console.error('Error fetching 馬連:', error);
+      }
+    };
     fetchRaceCard();
+    fetchUmaren();
   }, []);
 
   const handleToggle = (num: number) => {
@@ -54,8 +79,11 @@ const OddsPage = () => {
   };
 
   useEffect(() => {
+    const newUmaren = umaren.filter((row) =>
+      selection.includes(row.num1) && selection.includes(row.num2)
+    );
+    setSelcetedUmaren(newUmaren);
     sendSelection();
-
   }, [selection]);
 
   const sendSelection = async () => {
@@ -74,6 +102,19 @@ const OddsPage = () => {
       console.log('Backend response:', data);
     } catch (error) {
       console.error('Error sending data to backend:', error);
+    }
+  };
+
+  // オッズのスタイルを調整
+  const getOddsStyle = (row: UmarenBet) => {
+    const ratioWin = row.win / row.ratio;
+
+    if (ratioWin <= 0.7) {
+      return { color: 'darkred', fontWeight: 'bold' }; // 0.7以下は赤の太字
+    } else if (ratioWin >= 1.3) {
+      return { color: 'lightblue', fontWeight: 'bold' }; // 1.5以下は水色の太字
+    } else {
+      return {}; // それ以外のスタイルはデフォルト
     }
   };
 
@@ -112,7 +153,29 @@ const OddsPage = () => {
           ))}
         </tbody>
       </table>
-      <h2>この辺にオッズ一覧</h2>
+      <h2>この辺にオッズ一覧：水色がおすすめの買い目</h2>
+      <table style={{ width: '100%', border: '1px solid black', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th>1頭目</th>
+            <th>2頭目</th>
+            <th>オッズ</th>
+            <th>支持率</th>
+            <th>単勝ベース</th>
+          </tr>
+        </thead>
+        <tbody>
+          {selcetedUmaren.map((row, index) => (
+            <tr key={index}>
+              <td>{row.num1}</td>
+              <td>{row.num2}</td>
+              <td style={getOddsStyle(row)}>{row.odds}</td>
+              <td>{row.ratio}</td>
+              <td>{row.win}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
