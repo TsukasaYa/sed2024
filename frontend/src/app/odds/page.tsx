@@ -93,68 +93,65 @@ const OddsPage = () => {
     const discouragedRatio = 0.7
 
     if (deviation <= discouragedRatio) {
-      return { color: 'darkred', fontWeight: 'bold' };
+      return 'text-red-700 font-bold';
     } else if (deviation >= encouragedRatio) {
-      return { color: 'lightblue', fontWeight: 'bold' };
+      return 'text-sky-300 font-bold';
     } else {
-      return {};
+      return '';
     }
   };
 
   return (
-    <div style={{ backgroundColor: 'white', color: 'black', padding: '20px' }}>
+    <div className="bg-blue-50 text-black p-5">
       <h1>オッズ確認</h1>
       <h2>出馬表</h2>
-      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-        <thead>
+      <table className="w-full border-collapse mt-5">
+        <thead className="border border-black bg-gray-200">
           <tr>
-            <th style={{ border: '1px solid black', padding: '8px' }}>選択</th>
-            <th style={{ border: '1px solid black', padding: '8px' }}>馬番</th>
-            <th style={{ border: '1px solid black', padding: '8px' }}>馬名</th>
-            <th style={{ border: '1px solid black', padding: '8px' }}>オッズ</th>
-            <th style={{ border: '1px solid black', padding: '8px' }}>単勝支持率</th>
+            <th className="border border-black p-2">選択</th>
+            <th className="border border-black p-2">馬番</th>
+            <th className="border border-black p-2">馬名</th>
+            <th className="border border-black p-2">オッズ</th>
+            <th className="border border-black p-2">単勝支持率</th>     
           </tr>
         </thead>
         <tbody>
           {raceCard.map((horse) => (
             <tr key={horse.number}
-                style={{
-                backgroundColor: selectedHorses.includes(horse.number)
-                  ? 'lightyellow' // 選択された行の背景色
-                  : 'white', // 選択されていない行の背景色
-                }}>
-              <td style={{ border: '1px solid black', padding: '8px' }}>
+              className={`${selectedHorses.includes(horse.number) ? 'bg-yellow-100' : 'bg-white' }`}
+            >
+              <td className="border border-black p-2">
                 <button onClick={() => handleToggle(horse.number)}>
                   {selectedHorses.includes(horse.number) ? '✅' : '[ -- ]'}
                 </button>
               </td>
-              <td style={{ border: '1px solid black', padding: '8px' }}>{horse.number}</td>
-              <td style={{ border: '1px solid black', padding: '8px' }}>{horse.name}</td>
-              <td style={{ border: '1px solid black', padding: '8px' }}>{horse.odds}</td>
-              <td style={{ border: '1px solid black', padding: '8px' }}>{horse.votingRate}</td>
+              <td className="border border-black p-2">{horse.number}</td>
+              <td className="border border-black p-2">{horse.name}</td>
+              <td className="border border-black p-2">{horse.odds}</td>
+              <td className="border border-black p-2">{horse.votingRate}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <h2>オッズ一覧：水色がおすすめの買い目</h2>
-      <table style={{ width: '100%', border: '1px solid black', borderCollapse: 'collapse' }}>
-        <thead>
+      <h2 className="text-l mt-10">オッズ一覧：水色がおすすめの買い目</h2>
+      <table className="w-full border border-black bg-neutral-50 mt-5 border-collapse">
+        <thead className="w-full border border-black">
           <tr>
-            <th>1頭目</th>
-            <th>2頭目</th>
-            <th>オッズ</th>
-            <th>支持率</th>
-            <th>単勝ベース</th>
+            <th className="p-2">1頭目</th>
+            <th className="p-2">2頭目</th>
+            <th className="p-2">オッズ</th>
+            <th className="p-2">支持率</th>
+            <th className="p-2">単勝ベース</th>
           </tr>
         </thead>
         <tbody>
           {selcetedBets.map((row, index) => (
-            <tr key={index}>
-              <td>{row.firstHorse}</td>
-              <td>{row.secondHorse}</td>
-              <td style={emphasisOdds(row)}>{row.odds}</td>
-              <td>{row.votingRate}</td>
-              <td>{row.expetedRate}</td>
+            <tr key={index} className="border-b border-gray-300">
+              <td className="px-2">{row.firstHorse}</td>
+              <td className="px-2">{row.secondHorse}</td>
+              <td className={`px-2 ${emphasisOdds(row)}`}>{row.odds}</td>
+              <td className="px-2">{row.votingRate}</td>
+              <td className="px-2">{row.expetedRate}</td>
             </tr>
           ))}
         </tbody>
