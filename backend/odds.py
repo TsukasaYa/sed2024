@@ -4,14 +4,16 @@ import os
 from scraping import fetch_dynamic_html
 
 def extract_tanfuku(id):
-    cache_path="cache/tansho.html"
+    cache_path=f"cache/tansho{id}.html"
     html = ""
     if os.path.exists(cache_path):
+        print("LOAD odds from cache")
         with open(cache_path, "r", encoding="utf-8") as file:
             html = file.read()
     else:
         url = f"https://race.netkeiba.com/odds/index.html?type=b1&race_id={id}&rf=shutuba_submenu"
         html = fetch_dynamic_html(url)
+        print(f"LOAD odds from {url}")
         with open(cache_path, "w", encoding="utf-8") as file:
             file.write(html)
     tables = pd.read_html(html)
@@ -36,15 +38,18 @@ def support_ratio(df, deduction_rate, key_columns): # deduction_rate: 控除率
     return df
 
 def extract_umaren(id, tansho):
-    cache_path="cache/umaren.html"
+    cache_path=f"cache/umaren{id}.html"
     if os.path.exists(cache_path):
+        print("LOAD umaren odds from cache")
         with open(cache_path, "r", encoding="utf-8") as file:
             html = file.read()
     else:
         url = f"https://race.netkeiba.com/odds/index.html?type=b4&race_id={id}&rf=shutuba_submenu"
+        print(f"LOAD umaren odds from {url}")
         html = fetch_dynamic_html(url)
         with open(cache_path, "w", encoding="utf-8") as file:
             file.write(html)
+            
     tables = pd.read_html(html)
 
     # dfに変換

@@ -1,4 +1,8 @@
-from playwright.sync_api import sync_playwright
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from fastapi.responses import HTMLResponse
 from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
@@ -7,6 +11,21 @@ import time
 
 RETRY_MAX = 3 # ページ読み込みをやり直す回数
 
+# Seleniumのオプション設定
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # ヘッドレスモードでブラウザを表示しない
+chrome_driver_path = './chromedriver.exe'
+
+def fetch_dynamic_html(url):
+    service = Service(chrome_driver_path)
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver.get(url)
+    time.sleep(5)
+    html = driver.page_source
+    driver.quit()
+    return html
+
+'''
 def fetch_dynamic_html(url):
     print(f"GOTO {url}")
     with sync_playwright() as p:
@@ -26,6 +45,7 @@ def fetch_dynamic_html(url):
                 else:
                     browser.close()
                     raise e  # あきらめ
+'''
 
 def get_dates():
     future_dates = []
