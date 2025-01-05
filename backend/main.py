@@ -33,6 +33,10 @@ class RaceId(BaseModel):
     race_id: int
 saved_race_id = None
 
+class Selection(BaseModel):
+    selection: list[int]
+saved_selection = []
+
 tansho_odds : pd.DataFrame = None
 
 @app.post("/send_id")
@@ -48,6 +52,20 @@ async def get_card():
     tansho_odds = get_tansho(saved_race_id)
     json_data = tansho_odds.to_json(orient="records", force_ascii=False)
     print(f"SEND race_card")
+    return JSONResponse(content=json.loads(json_data), headers={"Content-Type": "application/json; charset=utf-8"})
+
+@app.post("/selection")
+async def set_selection(s: Selection):
+    global saved_selection
+    saved_selection = s.selection
+    print(f"RECEIVE selection {saved_selection}")
+    return {"message": "ok"}
+
+@app.get("/umaren")
+async def umaren():
+    umaren = get_umaren(saved_race_id, tansho_odds)
+    json_data = tansho_odds.to_json(orient="records", force_ascii=False)
+    print(f"SEND umaren_odds")
     return JSONResponse(content=json.loads(json_data), headers={"Content-Type": "application/json; charset=utf-8"})
 
 if __name__ == '__main__':
