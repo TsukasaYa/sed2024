@@ -26,7 +26,7 @@ const OddsPage = () => {
   const [raceCard, setRaceCard] = useState<RaceHorse[]>([]);
   const [quinellaBets, setQuinellaBets] = useState<QuinellaBet[]>([]);
   const [selcetedBets, setSelcetedBets] = useState<QuinellaBet[]>([]);
-  const [selection, setSelection] = useState<number[]>([]); // 選択した馬番
+  const [selectedHorses, setSelectedHorses] = useState<number[]>([]); // 選択した馬番
 
   useEffect(() => {
     const fetchRaceCard = async () => {
@@ -53,7 +53,7 @@ const OddsPage = () => {
   }, []);
 
   const handleToggle = (num: number) => {
-    setSelection((prevSelected) => {
+    setSelectedHorses((prevSelected) => {
       if (prevSelected.includes(num)) {
         return prevSelected.filter((horseNum) => horseNum !== num); // 馬番がすでに選択されていれば削除
       } else {
@@ -64,11 +64,11 @@ const OddsPage = () => {
 
   useEffect(() => {
     const newBets = quinellaBets.filter((row) =>
-      selection.includes(row.firstHorse) && selection.includes(row.secondHorse)
+      selectedHorses.includes(row.firstHorse) && selectedHorses.includes(row.secondHorse)
     );
     setSelcetedBets(newBets);
     sendSelection();
-  }, [selection]);
+  }, [selectedHorses]);
 
   const sendSelection = async () => {
     try {
@@ -77,7 +77,7 @@ const OddsPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ selection: selection }),
+        body: JSON.stringify({ selection: selectedHorses }),
       });
       if (!response.ok) {
         throw new Error('Failed to send data to backend');
@@ -122,13 +122,13 @@ const OddsPage = () => {
           {raceCard.map((horse) => (
             <tr key={horse.number}
                 style={{
-                backgroundColor: selection.includes(horse.number)
+                backgroundColor: selectedHorses.includes(horse.number)
                   ? 'lightyellow' // 選択された行の背景色
                   : 'white', // 選択されていない行の背景色
                 }}>
               <td style={{ border: '1px solid black', padding: '8px' }}>
                 <button onClick={() => handleToggle(horse.number)}>
-                  {selection.includes(horse.number) ? '✅' : '[ -- ]'}
+                  {selectedHorses.includes(horse.number) ? '✅' : '[ -- ]'}
                 </button>
               </td>
               <td style={{ border: '1px solid black', padding: '8px' }}>{horse.number}</td>
