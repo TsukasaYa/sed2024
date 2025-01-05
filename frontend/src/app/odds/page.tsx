@@ -1,4 +1,5 @@
 'use client'; // クライアントコンポーネントを有効化
+import { stringifyResumeDataCache } from 'next/dist/server/resume-data-cache/resume-data-cache';
 import { useState, useEffect } from 'react';
 
 interface RaceData {
@@ -28,28 +29,24 @@ const OddsPage = () => {
   const [selcetedBets, setSelcetedBets] = useState<QuinellaBet[]>([]);
   const [selectedHorses, setSelectedHorses] = useState<number[]>([]); // 選択した馬番
 
+  const fetchRaceData = async (url: string) => {
+    const response = await fetch('http://localhost:8000/'+url);
+    return await response.json();
+  };
+
   useEffect(() => {
-    const fetchRaceCard = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/race-card');
-        const data = await response.json();
-        setRaceCard(data);
-      } catch (error) {
-        console.error('Error fetching race card:', error);
+    (async () =>{
+      const tasks = [{ url: 'race-card', setter: setRaceCard },
+                     { url: 'quinellas', setter: setQuinellaBets}];
+      for (const task of tasks) {
+        try {
+          const data = await fetchRaceData(task.url);
+          task.setter(data);
+        } catch (error) {
+          console.error(`Error fetching ${task.url}:`, error);
+        }
       }
-    };
-    const fetchQuinellaBet = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/quinellas');
-        const data = await response.json();
-        console.log(data);
-        setQuinellaBets(data);
-      } catch (error) {
-        console.error('Error fetching 馬連:', error);
-      }
-    };
-    fetchRaceCard();
-    fetchQuinellaBet();
+    })()
   }, []);
 
   const handleToggle = (num: number) => {
