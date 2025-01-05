@@ -31,34 +31,19 @@ const OddsPage = () => {
   useEffect(() => {
     const fetchRaceCard = async () => {
       try {
-        const response = await fetch('http://localhost:8000/race_card');
+        const response = await fetch('http://localhost:8000/race-card');
         const data = await response.json();
-        console.log(data);
-        const mappedData: RaceHorse[] = data.map((item) => ({
-          number : item["馬番"],  // "馬番" → num
-          name : item["馬名"],  // "馬名" → name
-          odds : item["オッズ"], // "オッズ" → odds
-          votingRate : item["支持率"] // "支持率" → ratio
-        }));
-        setRaceCard(mappedData);
-        console.log(raceCard);
+        setRaceCard(data);
       } catch (error) {
         console.error('Error fetching race card:', error);
       }
     };
     const fetchQuinellaBet = async () => {
       try {
-        const response = await fetch('http://localhost:8000/umaren');
+        const response = await fetch('http://localhost:8000/quinellas');
         const data = await response.json();
         console.log(data);
-        const mappedData: QuinellaBet[] = data.map((item) => ({
-          firstHorse : item["馬番1"],
-          secondHorse: item["馬番2"], 
-          odds       : item["オッズ"],
-          votingRate : item["支持率"],
-          expetedRate: item["単勝ベース"]
-        }));
-        setQuinellaBets(mappedData);
+        setQuinellaBets(data);
       } catch (error) {
         console.error('Error fetching 馬連:', error);
       }

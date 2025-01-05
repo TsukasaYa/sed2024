@@ -46,12 +46,13 @@ async def get_odds(race: RaceId):
     print(f"receive id {saved_race_id}")
     return {"message": "ok"}
 
-@app.get("/race_card")
+@app.get("/race-card")
 async def get_card():
     global tansho_odds
     tansho_odds = get_tansho(saved_race_id)
-    json_data = tansho_odds.to_json(orient="records", force_ascii=False)
-    print(f"SEND race_card")
+    win = tansho_odds.set_axis(["number", "name", "odds", "votingRate"], axis='columns')
+    json_data = win.to_json(orient="records", force_ascii=False)
+    print(f"SEND race-card")
     return JSONResponse(content=json.loads(json_data), headers={"Content-Type": "application/json; charset=utf-8"})
 
 @app.post("/selection")
@@ -61,9 +62,10 @@ async def set_selection(s: Selection):
     print(f"RECEIVE selection {saved_selection}")
     return {"message": "ok"}
 
-@app.get("/umaren")
+@app.get("/quinellas")
 async def umaren():
     umaren = get_umaren(saved_race_id, tansho_odds)
+    umaren.columns = ["firstHorse", "secondHorse", "odds", "votingRate", "expetedRate"]
     json_data = umaren.to_json(orient="records", force_ascii=False)
     print(f"SEND umaren_odds")
     return JSONResponse(content=json.loads(json_data), headers={"Content-Type": "application/json; charset=utf-8"})
