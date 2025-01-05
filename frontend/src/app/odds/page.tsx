@@ -8,10 +8,10 @@ interface RaceData {
 }
 
 interface RaceHorse{
-  num  : number
-  name : string
-  odds : number
-  ratio: number
+  number     : number
+  name       : string
+  odds       : number
+  votingRate : number
 }
 
 interface QuinellaBet{
@@ -34,11 +34,11 @@ const OddsPage = () => {
         const response = await fetch('http://localhost:8000/race_card');
         const data = await response.json();
         console.log(data);
-        const mappedData = data.map((item) => ({
-          num: item["馬番"],  // "馬番" → num
-          name: item["馬名"],  // "馬名" → name
-          odds: item["オッズ"], // "オッズ" → odds
-          ratio: item["支持率"] // "支持率" → ratio
+        const mappedData: RaceHorse[] = data.map((item) => ({
+          number : item["馬番"],  // "馬番" → num
+          name : item["馬名"],  // "馬名" → name
+          odds : item["オッズ"], // "オッズ" → odds
+          votingRate : item["支持率"] // "支持率" → ratio
         }));
         setRaceCard(mappedData);
         console.log(raceCard);
@@ -46,17 +46,17 @@ const OddsPage = () => {
         console.error('Error fetching race card:', error);
       }
     };
-    const fetchUmaren = async () => {
+    const fetchQuinellaBet = async () => {
       try {
         const response = await fetch('http://localhost:8000/umaren');
         const data = await response.json();
         console.log(data);
-        const mappedData = data.map((item) => ({
-          num1: item["馬番1"],
-          num2: item["馬番2"], 
-          odds: item["オッズ"],
-          ratio: item["支持率"],
-          win: item["単勝ベース"]
+        const mappedData: QuinellaBet[] = data.map((item) => ({
+          firstHorse : item["馬番1"],
+          secondHorse: item["馬番2"], 
+          odds       : item["オッズ"],
+          votingRate : item["支持率"],
+          expetedRate: item["単勝ベース"]
         }));
         setQuinellaBets(mappedData);
       } catch (error) {
@@ -64,7 +64,7 @@ const OddsPage = () => {
       }
     };
     fetchRaceCard();
-    fetchUmaren();
+    fetchQuinellaBet();
   }, []);
 
   const handleToggle = (num: number) => {
@@ -92,7 +92,7 @@ const OddsPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ selection: selection }), // 選択された馬番の配列を送信
+        body: JSON.stringify({ selection: selection }),
       });
       if (!response.ok) {
         throw new Error('Failed to send data to backend');
@@ -133,21 +133,21 @@ const OddsPage = () => {
         </thead>
         <tbody>
           {raceCard.map((horse) => (
-            <tr key={horse.num}
+            <tr key={horse.number}
                 style={{
-                backgroundColor: selection.includes(horse.num)
+                backgroundColor: selection.includes(horse.number)
                   ? 'lightyellow' // 選択された行の背景色
                   : 'white', // 選択されていない行の背景色
                 }}>
               <td style={{ border: '1px solid black', padding: '8px' }}>
-                <button onClick={() => handleToggle(horse.num)}>
-                  {selection.includes(horse.num) ? '✅' : '[ -- ]'}
+                <button onClick={() => handleToggle(horse.number)}>
+                  {selection.includes(horse.number) ? '✅' : '[ -- ]'}
                 </button>
               </td>
-              <td style={{ border: '1px solid black', padding: '8px' }}>{horse.num}</td>
+              <td style={{ border: '1px solid black', padding: '8px' }}>{horse.number}</td>
               <td style={{ border: '1px solid black', padding: '8px' }}>{horse.name}</td>
               <td style={{ border: '1px solid black', padding: '8px' }}>{horse.odds}</td>
-              <td style={{ border: '1px solid black', padding: '8px' }}>{horse.ratio}</td>
+              <td style={{ border: '1px solid black', padding: '8px' }}>{horse.votingRate}</td>
             </tr>
           ))}
         </tbody>
