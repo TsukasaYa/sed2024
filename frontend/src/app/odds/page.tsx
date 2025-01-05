@@ -104,23 +104,25 @@ const OddsPage = () => {
     }
   };
 
-  // オッズのスタイルを調整
-  const getOddsStyle = (row: QuinellaBet) => {
-    const ratioWin = row.expetedRate / row.votingRate;
+  // 特徴的なオッズに色付け
+  const emphasisOdds = (row: QuinellaBet) => {
+    const deviation = row.expetedRate / row.votingRate;
+    const encouragedRatio = 1.3
+    const discouragedRatio = 0.7
 
-    if (ratioWin <= 0.7) {
-      return { color: 'darkred', fontWeight: 'bold' }; // 0.7以下は赤の太字
-    } else if (ratioWin >= 1.3) {
-      return { color: 'lightblue', fontWeight: 'bold' }; // 1.5以下は水色の太字
+    if (deviation <= discouragedRatio) {
+      return { color: 'darkred', fontWeight: 'bold' };
+    } else if (deviation >= encouragedRatio) {
+      return { color: 'lightblue', fontWeight: 'bold' };
     } else {
-      return {}; // それ以外のスタイルはデフォルト
+      return {};
     }
   };
 
   return (
     <div style={{ backgroundColor: 'white', color: 'black', padding: '20px' }}>
       <h1>オッズ確認</h1>
-      <h2>↓この辺に出馬表兼マークシート↓</h2>
+      <h2>出馬表</h2>
       <table style={{ borderCollapse: 'collapse', width: '100%' }}>
         <thead>
           <tr>
@@ -152,7 +154,7 @@ const OddsPage = () => {
           ))}
         </tbody>
       </table>
-      <h2>この辺にオッズ一覧：水色がおすすめの買い目</h2>
+      <h2>オッズ一覧：水色がおすすめの買い目</h2>
       <table style={{ width: '100%', border: '1px solid black', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
@@ -168,7 +170,7 @@ const OddsPage = () => {
             <tr key={index}>
               <td>{row.firstHorse}</td>
               <td>{row.secondHorse}</td>
-              <td style={getOddsStyle(row)}>{row.odds}</td>
+              <td style={emphasisOdds(row)}>{row.odds}</td>
               <td>{row.votingRate}</td>
               <td>{row.expetedRate}</td>
             </tr>
