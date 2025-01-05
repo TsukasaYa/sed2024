@@ -14,18 +14,18 @@ interface RaceHorse{
   ratio: number
 }
 
-interface UmarenBet{
-  num1 : number
-  num2 : number
-  odds : number
-  ratio: number
-  win  : number
+interface QuinellaBet{
+  firstHorse  : number
+  secondHorse : number
+  odds        : number
+  votingRate  : number
+  expetedRate : number
 }
 
 const OddsPage = () => {
   const [raceCard, setRaceCard] = useState<RaceHorse[]>([]);
-  const [umaren, setUmaren] = useState<UmarenBet[]>([]);
-  const [selcetedUmaren, setSelcetedUmaren] = useState<UmarenBet[]>([]);
+  const [quinellaBets, setQuinellaBets] = useState<QuinellaBet[]>([]);
+  const [selcetedBets, setSelcetedBets] = useState<QuinellaBet[]>([]);
   const [selection, setSelection] = useState<number[]>([]); // 選択した馬番
 
   useEffect(() => {
@@ -58,8 +58,7 @@ const OddsPage = () => {
           ratio: item["支持率"],
           win: item["単勝ベース"]
         }));
-        setUmaren(mappedData);
-        console.log(umaren);
+        setQuinellaBets(mappedData);
       } catch (error) {
         console.error('Error fetching 馬連:', error);
       }
@@ -79,10 +78,10 @@ const OddsPage = () => {
   };
 
   useEffect(() => {
-    const newUmaren = umaren.filter((row) =>
-      selection.includes(row.num1) && selection.includes(row.num2)
+    const newBets = quinellaBets.filter((row) =>
+      selection.includes(row.firstHorse) && selection.includes(row.secondHorse)
     );
-    setSelcetedUmaren(newUmaren);
+    setSelcetedBets(newBets);
     sendSelection();
   }, [selection]);
 
@@ -106,8 +105,8 @@ const OddsPage = () => {
   };
 
   // オッズのスタイルを調整
-  const getOddsStyle = (row: UmarenBet) => {
-    const ratioWin = row.win / row.ratio;
+  const getOddsStyle = (row: QuinellaBet) => {
+    const ratioWin = row.expetedRate / row.votingRate;
 
     if (ratioWin <= 0.7) {
       return { color: 'darkred', fontWeight: 'bold' }; // 0.7以下は赤の太字
@@ -165,13 +164,13 @@ const OddsPage = () => {
           </tr>
         </thead>
         <tbody>
-          {selcetedUmaren.map((row, index) => (
+          {selcetedBets.map((row, index) => (
             <tr key={index}>
-              <td>{row.num1}</td>
-              <td>{row.num2}</td>
+              <td>{row.firstHorse}</td>
+              <td>{row.secondHorse}</td>
               <td style={getOddsStyle(row)}>{row.odds}</td>
-              <td>{row.ratio}</td>
-              <td>{row.win}</td>
+              <td>{row.votingRate}</td>
+              <td>{row.expetedRate}</td>
             </tr>
           ))}
         </tbody>
