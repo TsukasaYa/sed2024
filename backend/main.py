@@ -35,13 +35,20 @@ saved_race_id = None
 
 tansho_odds : pd.DataFrame = None
 
-@app.post("/race_card")
+@app.post("/send_id")
 async def get_odds(race: RaceId):
     global saved_race_id
-    global tansho_odds
     saved_race_id = race.race_id
+    print(f"receive id {saved_race_id}")
+    return {"message": "ok"}
+
+@app.get("/race_card")
+async def get_card():
+    global tansho_odds
     tansho_odds = get_tansho(saved_race_id)
-    return {"message": "Race ID received", "race_card": tansho_odds.to_json()}
+    json_data = tansho_odds.to_json(orient="records", force_ascii=False)
+    print(f"SEND race_card")
+    return JSONResponse(content=json.loads(json_data), headers={"Content-Type": "application/json; charset=utf-8"})
 
 if __name__ == '__main__':
     pass

@@ -49,19 +49,19 @@ export default function Home() {
     setSelectedRaceId(raceId);
 
     // レースIDをバックエンドに送信
-    const response = await fetch('http://localhost:8000/race_card', {
+    const response = await fetch('http://localhost:8000/send_id', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ race_id: raceId }),
     });
-    if (response.ok) {
-      // ID送信後、オッズ確認ページに遷移
-      router.push(`/odds`);
-    } else {
-      console.error("Failed to send race ID to the backend.");
+    if (!response.ok) {
+      throw new Error('Failed to set race ID');
     }
+
+    router.push(`/odds`);
+
   };
 
   return (
