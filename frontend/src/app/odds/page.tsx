@@ -1,4 +1,5 @@
 'use client'; // クライアントコンポーネントを有効化
+import { stringifyResumeDataCache } from 'next/dist/server/resume-data-cache/resume-data-cache';
 import { useState, useEffect } from 'react';
 
 interface RaceData {
@@ -8,68 +9,48 @@ interface RaceData {
 }
 
 interface RaceHorse{
-  num  : number
-  name : string
-  odds : number
-  ratio: number
+  number     : number
+  name       : string
+  odds       : number
+  votingRate : number
 }
 
-interface UmarenBet{
-  num1 : number
-  num2 : number
-  odds : number
-  ratio: number
-  win  : number
+interface QuinellaBet{
+  firstHorse  : number
+  secondHorse : number
+  odds        : number
+  votingRate  : number
+  expetedRate : number
 }
 
 const OddsPage = () => {
   const [raceCard, setRaceCard] = useState<RaceHorse[]>([]);
-  const [umaren, setUmaren] = useState<UmarenBet[]>([]);
-  const [selcetedUmaren, setSelcetedUmaren] = useState<UmarenBet[]>([]);
-  const [selection, setSelection] = useState<number[]>([]); // 選択した馬番
+  const [quinellaBets, setQuinellaBets] = useState<QuinellaBet[]>([]);
+  const [selcetedBets, setSelcetedBets] = useState<QuinellaBet[]>([]);
+  const [selectedHorses, setSelectedHorses] = useState<number[]>([]); // 選択した馬番
+
+  const fetchRaceData = async (url: string) => {
+    const response = await fetch('http://localhost:8000/'+url);
+    return await response.json();
+  };
 
   useEffect(() => {
-    const fetchRaceCard = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/race_card');
-        const data = await response.json();
-        console.log(data);
-        const mappedData = data.map((item) => ({
-          num: item["馬番"],  // "馬番" → num
-          name: item["馬名"],  // "馬名" → name
-          odds: item["オッズ"], // "オッズ" → odds
-          ratio: item["支持率"] // "支持率" → ratio
-        }));
-        setRaceCard(mappedData);
-        console.log(raceCard);
-      } catch (error) {
-        console.error('Error fetching race card:', error);
+    (async () =>{
+      const tasks = [{ url: 'race-card', setter: setRaceCard },
+                     { url: 'quinellas', setter: setQuinellaBets}];
+      for (const task of tasks) {
+        try {
+          const data = await fetchRaceData(task.url);
+          task.setter(data);
+        } catch (error) {
+          console.error(`Error fetching ${task.url}:`, error);
+        }
       }
-    };
-    const fetchUmaren = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/umaren');
-        const data = await response.json();
-        console.log(data);
-        const mappedData = data.map((item) => ({
-          num1: item["馬番1"],
-          num2: item["馬番2"], 
-          odds: item["オッズ"],
-          ratio: item["支持率"],
-          win: item["単勝ベース"]
-        }));
-        setUmaren(mappedData);
-        console.log(umaren);
-      } catch (error) {
-        console.error('Error fetching 馬連:', error);
-      }
-    };
-    fetchRaceCard();
-    fetchUmaren();
+    })()
   }, []);
 
   const handleToggle = (num: number) => {
-    setSelection((prevSelected) => {
+    setSelectedHorses((prevSelected) => {
       if (prevSelected.includes(num)) {
         return prevSelected.filter((horseNum) => horseNum !== num); // 馬番がすでに選択されていれば削除
       } else {
@@ -79,12 +60,12 @@ const OddsPage = () => {
   };
 
   useEffect(() => {
-    const newUmaren = umaren.filter((row) =>
-      selection.includes(row.num1) && selection.includes(row.num2)
+    const newBets = quinellaBets.filter((row) =>
+      selectedHorses.includes(row.firstHorse) && selectedHorses.includes(row.secondHorse)
     );
-    setSelcetedUmaren(newUmaren);
+    setSelcetedBets(newBets);
     sendSelection();
-  }, [selection]);
+  }, [selectedHorses]);
 
   const sendSelection = async () => {
     try {
@@ -93,7 +74,7 @@ const OddsPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ selection: selection }), // 選択された馬番の配列を送信
+        body: JSON.stringify({ selection: selectedHorses }),
       });
       if (!response.ok) {
         throw new Error('Failed to send data to backend');
@@ -105,73 +86,72 @@ const OddsPage = () => {
     }
   };
 
-  // オッズのスタイルを調整
-  const getOddsStyle = (row: UmarenBet) => {
-    const ratioWin = row.win / row.ratio;
+  // 特徴的なオッズに色付け
+  const emphasisOdds = (row: QuinellaBet) => {
+    const deviation = row.expetedRate / row.votingRate;
+    const encouragedRatio = 1.3
+    const discouragedRatio = 0.7
 
-    if (ratioWin <= 0.7) {
-      return { color: 'darkred', fontWeight: 'bold' }; // 0.7以下は赤の太字
-    } else if (ratioWin >= 1.3) {
-      return { color: 'lightblue', fontWeight: 'bold' }; // 1.5以下は水色の太字
+    if (deviation <= discouragedRatio) {
+      return 'text-red-700 font-bold';
+    } else if (deviation >= encouragedRatio) {
+      return 'text-sky-300 font-bold';
     } else {
-      return {}; // それ以外のスタイルはデフォルト
+      return '';
     }
   };
 
   return (
-    <div style={{ backgroundColor: 'white', color: 'black', padding: '20px' }}>
+    <div className="bg-blue-50 text-black p-5">
       <h1>オッズ確認</h1>
-      <h2>↓この辺に出馬表兼マークシート↓</h2>
-      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-        <thead>
+      <h2>出馬表</h2>
+      <table className="w-full border-collapse mt-5">
+        <thead className="border border-black bg-gray-200">
           <tr>
-            <th style={{ border: '1px solid black', padding: '8px' }}>選択</th>
-            <th style={{ border: '1px solid black', padding: '8px' }}>馬番</th>
-            <th style={{ border: '1px solid black', padding: '8px' }}>馬名</th>
-            <th style={{ border: '1px solid black', padding: '8px' }}>オッズ</th>
-            <th style={{ border: '1px solid black', padding: '8px' }}>単勝支持率</th>
+            <th className="border border-black p-2">選択</th>
+            <th className="border border-black p-2">馬番</th>
+            <th className="border border-black p-2">馬名</th>
+            <th className="border border-black p-2">オッズ</th>
+            <th className="border border-black p-2">単勝支持率</th>     
           </tr>
         </thead>
         <tbody>
           {raceCard.map((horse) => (
-            <tr key={horse.num}
-                style={{
-                backgroundColor: selection.includes(horse.num)
-                  ? 'lightyellow' // 選択された行の背景色
-                  : 'white', // 選択されていない行の背景色
-                }}>
-              <td style={{ border: '1px solid black', padding: '8px' }}>
-                <button onClick={() => handleToggle(horse.num)}>
-                  {selection.includes(horse.num) ? '✅' : '[ -- ]'}
+            <tr key={horse.number}
+              className={`${selectedHorses.includes(horse.number) ? 'bg-yellow-100' : 'bg-white' }`}
+            >
+              <td className="border border-black p-2">
+                <button onClick={() => handleToggle(horse.number)}>
+                  {selectedHorses.includes(horse.number) ? '✅' : '[ -- ]'}
                 </button>
               </td>
-              <td style={{ border: '1px solid black', padding: '8px' }}>{horse.num}</td>
-              <td style={{ border: '1px solid black', padding: '8px' }}>{horse.name}</td>
-              <td style={{ border: '1px solid black', padding: '8px' }}>{horse.odds}</td>
-              <td style={{ border: '1px solid black', padding: '8px' }}>{horse.ratio}</td>
+              <td className="border border-black p-2">{horse.number}</td>
+              <td className="border border-black p-2">{horse.name}</td>
+              <td className="border border-black p-2">{horse.odds}</td>
+              <td className="border border-black p-2">{horse.votingRate}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <h2>この辺にオッズ一覧：水色がおすすめの買い目</h2>
-      <table style={{ width: '100%', border: '1px solid black', borderCollapse: 'collapse' }}>
-        <thead>
+      <h2 className="text-l mt-10">オッズ一覧：水色がおすすめの買い目</h2>
+      <table className="w-full border border-black bg-neutral-50 mt-5 border-collapse">
+        <thead className="w-full border border-black">
           <tr>
-            <th>1頭目</th>
-            <th>2頭目</th>
-            <th>オッズ</th>
-            <th>支持率</th>
-            <th>単勝ベース</th>
+            <th className="p-2">1頭目</th>
+            <th className="p-2">2頭目</th>
+            <th className="p-2">オッズ</th>
+            <th className="p-2">支持率</th>
+            <th className="p-2">単勝ベース</th>
           </tr>
         </thead>
         <tbody>
-          {selcetedUmaren.map((row, index) => (
-            <tr key={index}>
-              <td>{row.num1}</td>
-              <td>{row.num2}</td>
-              <td style={getOddsStyle(row)}>{row.odds}</td>
-              <td>{row.ratio}</td>
-              <td>{row.win}</td>
+          {selcetedBets.map((row, index) => (
+            <tr key={index} className="border-b border-gray-300">
+              <td className="px-2">{row.firstHorse}</td>
+              <td className="px-2">{row.secondHorse}</td>
+              <td className={`px-2 ${emphasisOdds(row)}`}>{row.odds}</td>
+              <td className="px-2">{row.votingRate}</td>
+              <td className="px-2">{row.expetedRate}</td>
             </tr>
           ))}
         </tbody>
