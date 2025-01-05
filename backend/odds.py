@@ -37,15 +37,15 @@ def support_ratio(df, deduction_rate, key_columns): # deduction_rate: 控除率
     df = df.sort_values(key_columns).reset_index(drop=True)
     return df
 
-def extract_umaren(id, tansho):
-    cache_path=f"cache/umaren{id}.html"
+def extract_quinella(id, tansho):
+    cache_path=f"cache/quinella{id}.html"
     if os.path.exists(cache_path):
-        print("LOAD umaren odds from cache")
+        print("LOAD quinella odds from cache")
         with open(cache_path, "r", encoding="utf-8") as file:
             html = file.read()
     else:
         url = f"https://race.netkeiba.com/odds/index.html?type=b4&race_id={id}&rf=shutuba_submenu"
-        print(f"LOAD umaren odds from {url}")
+        print(f"LOAD quinella odds from {url}")
         html = fetch_dynamic_html(url)
         with open(cache_path, "w", encoding="utf-8") as file:
             file.write(html)
@@ -58,26 +58,26 @@ def extract_umaren(id, tansho):
         table = table.rename(columns={f"{i}": "馬番2", f"{i}.1": "オッズ"})
         table["馬番1"] = str(i)
         processed_tables.append(table[["馬番1", "馬番2", "オッズ"]])
-    umaren = pd.concat(processed_tables, ignore_index=True)
-    umaren = umaren.astype({"馬番1": "int", "馬番2": "int", "オッズ": "float"})
-    umaren = support_ratio(umaren, 0.775, ["馬番1", "馬番2"])
+    quinella_df = pd.concat(processed_tables, ignore_index=True)
+    quinella_df = quinella_df.astype({"馬番1": "int", "馬番2": "int", "オッズ": "float"})
+    quinella_df = support_ratio(quinella_df, 0.775, ["馬番1", "馬番2"])
 
     # 単勝に基づくオッズを計算
-    umaren["単勝ベース"] = 0.0
-    for idx, row in umaren.iterrows():
+    quinella_df["単勝ベース"] = 0.0
+    for idx, row in quinella_df.iterrows():
         tansho_1 = tansho[tansho["馬番"] == int(row["馬番1"])]["支持率"].values[0]
         tansho_2 = tansho[tansho["馬番"] == int(row["馬番2"])]["支持率"].values[0]
         tansho_base  = ((tansho_1 * tansho_2) / (1 - tansho_1) +
                         (tansho_2 * tansho_1) / (1 - tansho_2))
-        umaren.at[umaren.index[idx], "単勝ベース"] = tansho_base
-    return umaren
+        quinella_df.at[quinella_df.index[idx], "単勝ベース"] = tansho_base
+    return quinella_df
 
 def get_tansho(id):
     tan, fuku = extract_tanfuku(id)
     return tan
 
-def get_umaren(id, tan):
-    return extract_umaren(id, tan)
+def get_quinella(id, tan):
+    return extract_quinella(id, tan)
 
 def main(id):
     if len(id) != 12:
@@ -85,8 +85,8 @@ def main(id):
     print(f"id={id}")
     tan, fuku= extract_tanfuku(id)
     print(tan)
-    umaren = extract_umaren(id, tan)
-    print(umaren)
+    quinella = extract_quinella(id, tan)
+    print(quinella)
 
 
 if __name__ == "__main__":

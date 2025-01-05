@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from scraping import get_dates, get_races
-from odds import get_tansho, get_umaren
+from odds import get_tansho, get_quinella
 import json
 import pandas as pd
 
@@ -64,7 +64,7 @@ async def set_selection(s: Selection):
 
 @app.get("/quinellas")
 async def umaren():
-    umaren = get_umaren(saved_race_id, tansho_odds)
+    umaren = get_quinella(saved_race_id, tansho_odds)
     umaren.columns = ["firstHorse", "secondHorse", "odds", "votingRate", "expetedRate"]
     json_data = umaren.to_json(orient="records", force_ascii=False)
     print(f"SEND umaren_odds")
