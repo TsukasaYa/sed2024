@@ -2,6 +2,7 @@ import Image from "next/image";
 'use client'; // クライアントコンポーネントを有効化
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type Race = {
   date: string;
@@ -17,6 +18,8 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [selectedRaceId, setSelectedRaceId] = useState<number | null>(null);
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
