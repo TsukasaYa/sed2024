@@ -67,6 +67,12 @@ def extract_umaren(id, tansho):
         umaren.at[umaren.index[idx], "単勝ベース"] = tansho_base
     return umaren
 
+def get_tansho(id):
+    tan, fuku = extract_tanfuku(id)
+    return tan
+
+def get_umaren(id, tan):
+    return extract_umaren(id, tan)
 
 def main(id):
     if len(id) != 12:

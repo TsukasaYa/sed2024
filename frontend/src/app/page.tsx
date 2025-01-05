@@ -45,8 +45,23 @@ export default function Home() {
   const dates = Array.from(new Set(data.map((item) => item.date)));
   const courses = Array.from(new Set(data.map((item) => item.course)));
 
-  const handleRowClick = (raceId: number) => {
+  const handleRowClick = async (raceId: number) => {
     setSelectedRaceId(raceId);
+
+    // レースIDをバックエンドに送信
+    const response = await fetch('http://localhost:8000/race_card', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ race_id: raceId }),
+    });
+    if (response.ok) {
+      // ID送信後、オッズ確認ページに遷移
+      router.push(`/odds`);
+    } else {
+      console.error("Failed to send race ID to the backend.");
+    }
   };
 
   return (

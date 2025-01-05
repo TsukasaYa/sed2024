@@ -33,14 +33,14 @@ class RaceId(BaseModel):
     race_id: int
 saved_race_id = None
 
-tansho_odds = None
+tansho_odds : pd.DataFrame = None
 
 @app.post("/race_card")
 async def get_odds(race: RaceId):
     global saved_race_id
     global tansho_odds
     saved_race_id = race.race_id
-    tansho_odds : pd.DataFrame = get_tansho(saved_race_id)
+    tansho_odds = get_tansho(saved_race_id)
     return {"message": "Race ID received", "race_card": tansho_odds.to_json()}
 
 if __name__ == '__main__':
